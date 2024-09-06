@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ survey.title }} Results</title>
+</head>
+<body>
+    <h1>Results for {{ survey.title }}</h1>
+    <ul>
+        {% for response in responses %}
+            <li>Response ID: {{ response.id }} - Date: {{ response.created_at }}</li>
+            <ul>
+                {% for answer in response.answer_set.all %}
+                    <li>{{ answer.question.text }}: 
+                        {% if answer.rating_answer %}
+                            {{ answer.rating_answer }}
+                        {% elif answer.text_answer %}
+                            {{ answer.text_answer }}
+                        {% elif answer.yes_no_answer is not None %}
+                            {{ answer.yes_no_answer|yesno:"Yes,No" }}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </ul>
+</body>
+</html>

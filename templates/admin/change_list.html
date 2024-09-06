@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<!-- Wstawianie wykresów -->
+<div>
+    <h2>{{ title }}</h2>
+    {% for chart in charts %}
+        <img src="data:image/png;base64,{{ chart }}" alt="Wykres ankiety" style="margin-bottom: 20px;">
+    {% endfor %}
+</div>
+
+{% endblock %}

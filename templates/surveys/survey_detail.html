@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ survey.title }}</title>
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            transition: width 0.3s ease;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .pagination a, .pagination button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover, .pagination button:hover {
+            background-color: #45a049;
+        }
+
+        textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .radio-group {
+            display: flex;
+            justify-content: space-between;
+            max-width: 200px;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .button-group button {
+            width: 40px;
+            height: 40px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .button-group button:hover, .button-group button.selected {
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pasek postępu -->
+        <div class="progress-bar-container">
+            <div class="progress-bar" style="width: {{ progress }}%;">{{ progress }}%</div>
+        </div>
+
+        <h1>{{ survey.title }}</h1>
+        <p>{{ survey.description }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for question in page_obj %}
+                <div class="question">
+                    <label for="question_{{ question.id }}">{{ question.text }}</label><br>
+                    
+                    {% if question.question_type == 'scale' %}
+                        <!-- Replacing the input with buttons -->
+                        <div class="button-group" id="button-group-{{ question.id }}">
+                            {% for i in range_10 %}
+                                <button type="button" onclick="selectNumber({{ i }}, {{ question.id }})" id="button-{{ question.id }}-{{ i }}">{{ i }}</button>
+                            {% endfor %}
+                        </div>
+                        <!-- Hidden input to store selected value -->
+                        <input type="hidden" name="question_{{ question.id }}" id="hidden_input_{{ question.id }}">
+                    
+                    {% elif question.question_type == 'text' %}
+                        <textarea name="question_{{ question.id }}" rows="4" cols="50"></textarea>
+                    
+                    {% elif question.question_type == 'yesno' %}
+                        <div class="radio-group">
+                            <input type="radio" name="question_{{ question.id }}" value="Yes"> Tak
+                            <input type="radio" name="question_{{ question.id }}" value="No"> Nie
+                        </div>
+                    
+                    {% elif question.question_type == 'choice' %}
+                        <select name="question_{{ question.id }}">
+                            <option value="option1">Opcja 1</option>
+                            <option value="option2">Opcja 2</option>
+                            <option value="option3">Opcja 3</option>
+                        </select>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Wstecz</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <!-- Przekazanie wartości numeru strony jako ukryte pole formularza -->
+                    <input type="hidden" name="page" value="{{ page_obj.next_page_number }}">
+                    <button type="submit">Dalej</button>
+                {% else %}
+                    <button type="submit">Zakończ ankietę</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function selectNumber(value, questionId) {
+            // Set the hidden input value to the selected number
+            document.getElementById('hidden_input_' + questionId).value = value;
+
+            // Update button styles to reflect the selected state
+            let buttons = document.querySelectorAll('#button-group-' + questionId + ' button');
+            buttons.forEach(button => {
+                button.classList.remove('selected');
+            });
+
+            // Highlight the selected button
+            document.getElementById('button-' + questionId + '-' + value).classList.add('selected');
+        }
+    </script>
+</body>
+</html>
